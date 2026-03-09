@@ -1,0 +1,1525 @@
+<!-- 
+   VERSION: VP18
+   DATE: 2026-01-09
+   CHANGES:
+   1. 仅优势 (Youshi) 部分全面调整为居中对齐，其他板块保持原样。
+   2. .liuyan-neirong (原 .comment__content) 字体粗细由 bold 改为 normal。
+   3. CSS 部分每一行都添加了详细中文注释，说明作用。
+   4. :root 变量后详细注明了被哪些类名或标签使用。
+   5. JS Toast 提示时间从 1000ms 缩短为 500ms。
+   6. 统一使用 /* ... */ 风格注释。
+   7. 留言板 (Liuyan) 区域的所有 margin 和 padding 数值减少 10%，布局更紧凑。
+-->
+<!DOCTYPE html>
+<html lang="zh-Hans">
+
+<head>
+    <meta charset="UTF-8">
+    <!-- 设置缓存时间为 600秒 (10分钟) -->
+    <meta http-equiv="Cache-Control" content="max-age=600">
+    <!-- 视口设置：宽度等于设备宽度，初始缩放1.0 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <title>大嘴一对一口吃矫正 - 结构分离优化版 VP18</title>
+    
+    <meta name="keywords" content="大嘴,口吃结巴矫正中心,一对一口吃矫正法,结巴,口吃结巴矫正最简单方法,儿童成人口吃,口吃怎么治疗,口吃治疗法,口吃结巴的原因,如何治疗口吃,磕巴,口吃挂什么科室,Dazui">
+    <meta name="Description" content="1对1治疗全球口吃朋友,提供口吃结巴矫正最简单方法等口吃治疗法,回复口吃怎么治疗、结巴改过来小窍门或语言障碍和大嘴口吃矫正中心怎么样公司在哪里收费等问题stuttering">
+    
+    <link rel="shortcut icon" href="files/favicon.ico">
+    <link rel="preload" href="files/touxiang.webp" as="image">
+
+    <style>
+        /* ==========================================================================
+           1. 设计配置层 (Design Tokens) - 所有的硬编码值都在这里
+           ========================================================================== */
+        :root {
+            /* --- 颜色系统 (Yanse) --- */
+            --yanse-zhu: #059d7f;           /* 主色 (使用处: .toubu-daohang, .anli-touxiang, .youshi-fanwei, .liuyan-xiangmu 等) */
+            --yanse-zhu-shen: #047a63;      /* 主色深 (使用处: .lianxi-kouhao) */
+            --yanse-fuzhu: #8E43E6;         /* 辅助色(紫) (使用处: .tongyong-anniu 边框与背景) */
+            --yanse-beijing-qian: #f9fbfd;  /* 浅背景 (使用处: .anli-fanwei) */
+            --yanse-beijing-ka: #F8F7FD;    /* 卡片/头部背景 (使用处: .toubu-daohang, .shouye-fanwei) */
+            --yanse-biankuang: #eee;        /* 边框色 (使用处: .youshi-qipao, .lianxi-kapian, .liuyan-huifu-kuang, .yejiao-fanwei) */
+            --yanse-wenzi-zhu: #000;        /* 主要文字 (使用处: body, a, .toubu-lianjie) */
+            --yanse-wenzi-ci: #333;         /* 次要文字 (使用处: .anli-neirong, .youshi-xiangmu-neirong) */
+            --yanse-wenzi-hui: #666;        /* 灰色文字 (使用处: .anli-shijian) */
+            --yanse-wenzi-qian: #888;       /* 浅灰文字 (使用处: .liuyan-xinxi) */
+            --yanse-gaoliang: #ffff00;      /* 高亮背景 (使用处: .youshi-gaoliang) */
+
+            /* --- 字体大小系统 (Ziti) - 基于VW --- */
+            --ziti-xxl: 5.2vw;    /* 巨大标题 (使用处: .shouye-biaoti) */
+            --ziti-xl: 5vw;       /* 大标题 (斜体常用) (使用处: .youshi-xiangmu-biaoti, .lianxi-biaoti) */
+            --ziti-lg: 3vw;       /* 副标题 (使用处: .shouye-kouhao, .youshi-gaoliang) */
+            --ziti-md: 2.4vw;     /* 导航等 (使用处: .toubu-lianjie) */
+            --ziti-sm: 2.2vw;     /* 强调文字 (使用处: .anli-yonghu, .youshi-qipao-p) */
+            --ziti-xs: 2vw;       /* 正文 (使用处: .shouye-miaoshu, .youshi-xiangmu-neirong, .liuyan-gengduo a) */
+            --ziti-xxs: 1.8vw;    /* 辅助文字 (使用处: .shouye-dingbu, .tongyong-anniu, .anli-shijian) */
+            --ziti-min: 1.6vw;    /* 最小文字 (使用处: .anli-neirong, .lianxi-tishi) */
+
+            /* --- 间距系统 (Jianju) - 基于VW --- */
+            --jianju-xs: 0.5vw;   /* 极小间距 (使用处: padding, margin 微调) */
+            --jianju-sm: 1vw;     /* 小间距 (使用处: .toubu-daohang padding, gap) */
+            --jianju-md: 2vw;     /* 中间距 (使用处: .tongyong-bankuai, .shouye-kouhao) */
+            --jianju-lg: 3vw;     /* 大间距 (使用处: .anli-biaoti, .shouye-caidan) */
+            --jianju-xl: 4vw;     /* 特大间距 (使用处: .youshi-toubu gap, .lianxi-pinpai margin) */
+            --jianju-xxl: 5vw;    /* 极大间距 (使用处: .youshi-xiangmu margin) */
+
+            /* --- 圆角系统 (Yuanjiao) --- */
+            --yuanjiao-sm: 0.5vw; /* 小圆角 (使用处: .liuyan-gengduo a) */
+            --yuanjiao-md: 1vw;   /* 中圆角 (使用处: .anli-kapian-nei, .fuzhi-anniu) */
+            --yuanjiao-lg: 2vw;   /* 大圆角 (使用处: .youshi-qipao, .lianxi-kapian) */
+            --yuanjiao-yuan: 50%; /* 圆形 (使用处: .anli-touxiang, .lianxi-touxiang) */
+
+            /* --- 动画与轮播配置 (Donghua) --- */
+            --kapian-kuandu: 32.6vw;          /* 轮播卡片宽度 (使用处: .anli-kapian-wai, keyframes) */
+            --donghua-shichang: 22s;          /* 轮播时长 (使用处: .anli-guidao) */
+            --yinying-qian: rgba(0,0,0,0.05); /* 浅阴影 (使用处: .anli-kapian-nei) */
+            --yinying-shen: rgba(0,0,0,0.1);  /* 深阴影 (使用处: .youshi-touxiang, .lianxi-kapian) */
+        }
+
+        /* ==========================================================================
+           2. 基础重置层 (Base)
+           ========================================================================== */
+        /* 所有元素使用边框盒模型，内边距和边框包含在宽度内 */
+        * { box-sizing: border-box; }
+
+        /* HTML 根元素设置 */
+        html {
+            /* 禁止水平方向出现滚动条 */
+            overflow-x: hidden;
+            /* 宽度占满父容器 */
+            width: 100%;
+        }
+
+        /* Body 主体设置 */
+        body {
+            /* 去除默认的外边距 */
+            margin: 0;
+            /* 全局文字居中对齐 */
+            text-align: center;
+            /* 设置中文字体栈，优先使用楷体系列 */
+            font-family: "KaiTi", "STKaiti", "BiauKai", "AR PL UKai CN", serif;
+            /* 背景颜色设为纯白 */
+            background-color: #fff;
+            /* 宽度占满 */
+            width: 100%;
+            /* 默认文字颜色使用主文字色变量 */
+            color: var(--yanse-wenzi-zhu);
+        }
+
+        /* 链接基础样式 */
+        a { 
+            /* 继承父元素的颜色 */
+            color: inherit;
+            /* 去除下划线 */
+            text-decoration: none;
+            /* 添加 0.2秒 的过渡效果 */
+            transition: 0.2s;
+        }
+        
+        /* 图片全局样式 */
+        img { 
+            /* 限制最大宽度为 100%，防止溢出 */
+            max-width: 100%;
+            /* 高度自动保持比例 */
+            height: auto;
+            /* 块级显示，独占一行 */
+            display: block;
+            /* 水平居中 */
+            margin: 0 auto;
+        }
+
+        /* 通用板块布局容器 */
+        .tongyong-bankuai {
+            /* 宽度 100% */
+            width: 100%;
+            /* 上下内边距使用大间距变量 */
+            padding: var(--jianju-lg) 0;
+            /* 清除左右浮动 */
+            clear: both;
+        }
+
+        /* ==========================================================================
+           3. 组件层 (Components) - 可复用的UI元素
+           ========================================================================== */
+        
+        /* --- 通用按钮基础样式 --- */
+        .tongyong-anniu {
+            /* 行内块级元素 */
+            display: inline-block;
+            /* 字体大小使用辅助文字大小变量 */
+            font-size: var(--ziti-xxs);
+            /* 内边距：上下极小，左右大 */
+            padding: var(--jianju-xs) var(--jianju-lg);
+            /* 圆角固定为 10px */
+            border-radius: 10px;
+            /* 字间距增加 */
+            letter-spacing: 1.8px;
+            /* 边框使用辅助色变量 */
+            border: 1px solid var(--yanse-fuzhu);
+            /* 鼠标悬停显示手型 */
+            cursor: pointer;
+        }
+
+        /* 通用按钮悬停状态 */
+        .tongyong-anniu:hover {
+            /* 背景变深灰 */
+            background-color: #777;
+            /* 文字变白 */
+            color: #fff;
+        }
+
+        /* 主要按钮风格 (实心) */
+        .tongyong-anniu-zhu {
+            /* 背景使用辅助色 */
+            background: var(--yanse-fuzhu);
+            /* 文字白色 */
+            color: #fff;
+        }
+
+        /* 次要按钮风格 (空心) */
+        .tongyong-anniu-ci {
+            /* 背景白色 */
+            background: #fff;
+            /* 文字深蓝色 */
+            color: #162fe7;
+        }
+
+        /* --- 复制按钮 (联系板块专用) --- */
+        .fuzhi-anniu {
+            /* 背景白色 */
+            background: #fff;
+            /* 边框使用主色，宽度 2px */
+            border: 2px solid var(--yanse-zhu);
+            /* 圆角使用中等变量 */
+            border-radius: var(--yuanjiao-md);
+            /* 鼠标手型 */
+            cursor: pointer;
+            /* 字体较大，2.5vw */
+            font-size: 2.5vw;
+            /* 内边距使用小间距 */
+            padding: var(--jianju-sm);
+            /* 文字颜色使用主色 */
+            color: var(--yanse-zhu);
+            /* 字体粗细正常 */
+            font-weight: normal;
+        }
+        /* 复制按钮点击态 */
+        .fuzhi-anniu:active {
+            /* 背景变为主色 */
+            background: var(--yanse-zhu);
+            /* 文字变白 */
+            color: #fff;
+        }
+
+        /* ==========================================================================
+           4. 布局层 (Layouts) - 具体页面的样式实现
+           ========================================================================== */
+
+        /* --- 头部导航 (Toubu) --- */
+        /* 导航列表 */
+        .toubu-daohang ul {
+            /* 使用 Flex 布局 */
+            display: flex;
+            /* 子元素均匀分布 */
+            justify-content: space-around;
+            /* 去除列表默认样式 */
+            list-style: none;
+            /* 居中 */
+            margin: 0 auto;
+            /* 上下内边距使用小间距 */
+            padding: var(--jianju-sm) 0;
+            /* 背景色使用卡片背景色变量 */
+            background-color: var(--yanse-beijing-ka);
+        }
+
+        /* 导航链接 */
+        .toubu-lianjie {
+            /* 块级显示，扩大点击区域 */
+            display: block;
+            /* 颜色使用主文字色 */
+            color: var(--yanse-wenzi-zhu);
+            /* 斜体 */
+            font-style: italic;
+            /* 字体大小使用中等变量 */
+            font-size: var(--ziti-md);
+            /* 字重加粗 */
+            font-weight: 800;
+            /* 右内边距使用中等间距 */
+            padding-right: var(--jianju-md);
+        }
+        /* 导航链接悬停态 */
+        .toubu-lianjie:hover {
+            /* 背景变灰 */
+            background-color: #777;
+            /* 文字变白 */
+            color: #fff;
+            /* 小圆角 */
+            border-radius: 5px;
+        }
+
+        /* --- 首页首屏 (Shouye) --- */
+        /* 首屏容器 */
+        .shouye-fanwei {
+            /* 上内边距极小 */
+            padding-top: var(--jianju-xs);
+            /* 下内边距中等 */
+            padding-bottom: var(--jianju-md);
+            /* Flex 纵向布局 */
+            display: flex;
+            flex-direction: column;
+            /* 水平居中 */
+            align-items: center;
+            /* 背景色使用卡片背景 */
+            background-color: var(--yanse-beijing-ka);
+            /* 内部文字左对齐 */
+            text-align: left;
+        }
+
+        /* 首屏内容限宽 */
+        .shouye-neirong {
+            /* 宽度 98% */
+            width: 98%;
+            /* 取消最大宽度限制 */
+            max-width: none;
+        }
+
+        /* 首屏顶部栏 */
+        .shouye-dingbu {
+            /* Flex 布局 */
+            display: flex;
+            /* 两端对齐 */
+            justify-content: space-between;
+            /* 字体大小辅助级 */
+            font-size: var(--ziti-xxs);
+            /* 上外边距极小 */
+            margin-top: var(--jianju-xs);
+        }
+
+        /* 首屏大标题 */
+        .shouye-biaoti {
+            /* 字体特大 */
+            font-size: var(--ziti-xxl);
+            /* 文字居中 */
+            text-align: center;
+            /* 上下外边距小 */
+            margin: var(--jianju-sm) 0;
+        }
+
+        /* 首屏口号 */
+        .shouye-kouhao {
+            /* 字体大 */
+            font-size: var(--ziti-lg);
+            /* 加粗 */
+            font-weight: bold;
+            /* 文字居中 */
+            text-align: center;
+            /* 上下外边距中等 */
+            margin: var(--jianju-md) 0;
+        }
+
+        /* 首屏描述文本 */
+        .shouye-miaoshu {
+            /* 字体正文大小 */
+            font-size: var(--ziti-xs);
+            /* 文字居中 */
+            text-align: center;
+            /* 不换行 */
+            white-space: nowrap;
+            /* 去除外边距 */
+            margin: 0;
+        }
+
+        /* 首屏按钮组 */
+        .shouye-caidan {
+            /* Flex 布局 */
+            display: flex;
+            /* 居中对齐 */
+            justify-content: center;
+            /* 按钮间距大 */
+            gap: var(--jianju-lg);
+            /* 上外边距大 */
+            margin-top: var(--jianju-lg);
+        }
+
+        /* --- 客户案例轮播 (Anli) --- */
+        /* 案例区域背景 */
+        .anli-fanwei {
+            /* 背景浅色 */
+            background-color: var(--yanse-beijing-qian);
+        }
+
+        /* 案例标题 */
+        .anli-biaoti {
+            /* 颜色深灰 */
+            color: #292929;
+            /* 字体固定 1.4vw */
+            font-size: 1.4vw; 
+            /* 下外边距大 */
+            margin-bottom: var(--jianju-lg);
+            /* 居中 */
+            text-align: center;
+        }
+
+        /* 轮播视窗容器 */
+        .anli-shichuang {
+            /* 宽度 98% */
+            width: 98%;
+            /* 居中 */
+            margin: 0 auto;
+            /* 高度自适应 */
+            height: auto;
+            /* 底部预留阴影空间 */
+            padding-bottom: var(--jianju-md);
+            /* 溢出隐藏 */
+            overflow: hidden;
+            /* 左右边缘遮罩渐变 */
+            mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+            -webkit-mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+            /* 左对齐 */
+            text-align: left;
+            /* 消除行内块间隙 */
+            font-size: 0;
+        }
+
+        /* 轮播轨道 */
+        .anli-guidao {
+            /* 行内 Flex */
+            display: inline-flex;
+            /* 宽度由内容撑开 */
+            width: max-content;
+            /* 高度自适应 */
+            height: auto;
+            /* 子元素拉伸等高 */
+            align-items: stretch;
+            /* 应用滚动动画 */
+            animation: anli-gundong var(--donghua-shichang) linear infinite alternate;
+            /* GPU 加速提示 */
+            will-change: transform;
+            /* 层级 */
+            z-index: 0;
+        }
+
+        /* 轮播关键帧动画 */
+        @keyframes anli-gundong {
+            /* 起始位置：屏幕中心减去一个卡片宽 */
+            0% { transform: translateX(calc(50vw - var(--kapian-kuandu))); }
+            /* 结束位置：屏幕中心减去总长加一个卡片宽 */
+            100% { transform: translateX(calc(50vw - 100% + var(--kapian-kuandu))); }
+        }
+
+        /* 案例卡片外层 */
+        .anli-kapian-wai {
+            /* 使用变量定义宽度 */
+            width: var(--kapian-kuandu);
+            /* 内边距：上下极小，左右 1.5vw */
+            padding: var(--jianju-xs) 1.5vw;
+            /* 防止压缩 */
+            flex-shrink: 0;
+            /* Flex 列布局 */
+            display: flex;
+            flex-direction: column;
+            /* 重置字体大小 */
+            font-size: 1rem;
+        }
+
+        /* 案例卡片内层 */
+        .anli-kapian-nei {
+            /* 背景白 */
+            background: white;
+            /* 圆角中等 */
+            border-radius: var(--yuanjiao-md);
+            /* 内容居中 */
+            text-align: center;
+            /* Flex 布局 */
+            display: flex;
+            flex-direction: column;
+            /* 顶端对齐 */
+            justify-content: flex-start;
+            /* 撑满父容器高度 */
+            flex: 1;
+            /* 内边距组合 */
+            padding: var(--jianju-lg) 1.5vw var(--jianju-md) 1.5vw;
+            /* 整体微缩 */
+            transform: scale(0.98);
+            /* 阴影效果 */
+            box-shadow: 0 10px 25px var(--yinying-qian);
+            /* 极细边框 */
+            border: 1px solid rgba(0,0,0,0.03);
+        }
+
+        /* 案例头像 */
+        .anli-touxiang {
+            /* 宽 8vw */
+            width: 8vw;
+            /* 高 8vw */
+            height: 8vw;
+            /* 下外边距 1.5vw */
+            margin: 0 auto 1.5vw;
+            /* 圆形 */
+            border-radius: var(--yuanjiao-yuan);
+            /* 边框主色 */
+            border: 2px solid var(--yanse-zhu);
+            /* 溢出隐藏 */
+            overflow: hidden;
+            /* 防止压缩 */
+            flex-shrink: 0;
+        }
+
+        /* 案例用户名 */
+        .anli-yonghu {
+            /* 字体强调级 */
+            font-size: var(--ziti-sm);
+            /* 颜色主色 */
+            color: var(--yanse-zhu);
+            /* 加粗 */
+            font-weight: bold;
+            /* 下外边距 0.8vw */
+            margin: 0 0 0.8vw;
+            /* 防止压缩 */
+            flex-shrink: 0;
+        }
+
+        /* 案例时间 */
+        .anli-shijian {
+            /* 字体辅助级 */
+            font-size: var(--ziti-xxs);
+            /* 颜色灰 */
+            color: var(--yanse-wenzi-hui);
+            /* 下外边距中等 */
+            margin: 0 0 var(--jianju-md);
+            /* 防止压缩 */
+            flex-shrink: 0;
+        }
+
+        /* 案例具体内容 */
+        .anli-neirong {
+            /* 字体最小级 */
+            font-size: var(--ziti-min);
+            /* 颜色次要 */
+            color: var(--yanse-wenzi-ci);
+            /* 行高 1.6 */
+            line-height: 1.6;
+            /* 斜体 */
+            font-style: italic;
+            /* 去除外边距 */
+            margin: 0;
+            /* 宽度 100% */
+            width: 100%;
+        }
+
+        /* --- 优势板块 (Youshi) --- */
+        /* 优势区域容器 */
+        .youshi-fanwei {
+            /* 文字主色 */
+            color: var(--yanse-zhu);
+            /* 去除上内边距 */
+            padding-top: 0;
+            /* --- 修改点：强制内部文本居中 --- */
+            text-align: center;
+        }
+
+        /* 优势头部对话框区域 */
+        .youshi-toubu {
+            /* Flex 布局 */
+            display: flex;
+            /* 垂直对齐顶部 */
+            align-items: flex-start;
+            /* 水平居中 */
+            justify-content: center;
+            /* 间距特大 */
+            gap: var(--jianju-xl);
+            /* 最大宽度 90% */
+            max-width: 90%;
+            /* 居中并设置下边距 */
+            margin: 0 auto var(--jianju-xxl);
+            /* --- 修改点：强制居中 --- */
+            text-align: center;
+        }
+
+        /* 优势气泡框 */
+        .youshi-qipao {
+            /* 背景白 */
+            background: #fff;
+            /* 内边距：上下大，左右特大 */
+            padding: var(--jianju-lg) var(--jianju-xl);
+            /* 圆角设置 */
+            border-radius: var(--yuanjiao-lg) var(--yuanjiao-lg) 0 var(--yuanjiao-lg);
+            /* 阴影 */
+            box-shadow: 0 var(--jianju-sm) var(--jianju-xl) rgba(0,0,0,0.08);
+            /* 边框 */
+            border: 1px solid var(--yanse-biankuang);
+            /* 相对定位 */
+            position: relative;
+            /* 占据剩余空间 */
+            flex: 1;
+        }
+
+        /* 气泡框三角形 (前景) */
+        .youshi-qipao::after {
+            /* 空内容 */
+            content: '';
+            /* 绝对定位 */
+            position: absolute;
+            /* 右侧偏移 */
+            right: -1.4vw;
+            /* 顶部偏移 */
+            top: var(--jianju-lg);
+            /* 透明边框构建三角 */
+            border-top: 1.5vw solid transparent;
+            border-bottom: 1.5vw solid transparent;
+            /* 白色左边框 */
+            border-left: 1.5vw solid #fff;
+        }
+        
+        /* 气泡框三角形 (边框背景) */
+        .youshi-qipao::before {
+            /* 空内容 */
+            content: '';
+            /* 绝对定位 */
+            position: absolute;
+            /* 右侧偏移稍大 */
+            right: -1.6vw;
+            /* 顶部偏移 */
+            top: var(--jianju-lg);
+            /* 透明边框 */
+            border-top: 1.5vw solid transparent;
+            border-bottom: 1.5vw solid transparent;
+            /* 灰色左边框 */
+            border-left: 1.5vw solid var(--yanse-biankuang);
+            /* 层级置后 */
+            z-index: -1;
+        }
+
+        /* 气泡内小标题 */
+        .youshi-qipao-p {
+            /* 字体强调级 */
+            font-size: var(--ziti-sm);
+            /* 黑色文字 */
+            color: #000;
+            /* 下边距小 */
+            margin: 0 0 var(--jianju-sm) 0;
+            /* 不换行 */
+            white-space: nowrap;
+        }
+
+        /* 气泡内大标题 */
+        .youshi-qipao-h2 {
+            /* 字体 4.5vw */
+            font-size: 4.5vw;
+            /* 加粗 */
+            font-weight: bold;
+            /* 斜体 */
+            font-style: italic;
+            /* 主色 */
+            color: var(--yanse-zhu);
+            /* 无外边距 */
+            margin: 0;
+            /* 行高 1.2 */
+            line-height: 1.2;
+        }
+
+        /* 优势头像 */
+        .youshi-touxiang {
+            /* 宽 14vw */
+            width: 14vw;
+            /* 高 14vw */
+            height: 14vw;
+            /* 圆形 */
+            border-radius: var(--yuanjiao-yuan);
+            /* 白色边框 */
+            border: var(--jianju-xs) solid #fff;
+            /* 深阴影 */
+            box-shadow: 0 var(--jianju-sm) var(--jianju-md) var(--yinying-shen);
+            /* 防止压缩 */
+            flex-shrink: 0;
+            /* 上边距小 */
+            margin-top: var(--jianju-sm);
+        }
+
+        /* 优势列表容器 */
+        .youshi-liebiao {
+            /* 去除列表样式 */
+            list-style: none;
+            /* 去除内边距 */
+            padding: 0;
+            /* 居中 */
+            margin: 0 auto;
+            /* 宽度 90% */
+            width: 90%;
+            /* --- 修改点：强制居中 --- */
+            text-align: center;
+            /* 初始化计数器 */
+            counter-reset: ys-count;
+        }
+
+        /* 优势单项 */
+        .youshi-xiangmu {
+            /* Grid 布局 */
+            display: grid;
+            /* 两列：左侧自动，右侧占据剩余 */
+            grid-template-columns: auto 1fr;
+            /* 间距中等 */
+            gap: var(--jianju-md);
+            /* 下边距极大 */
+            margin-bottom: var(--jianju-xxl);
+            /* 顶部对齐 */
+            align-items: start;
+            /* --- 修改点：强制居中 --- */
+            text-align: center;
+        }
+
+        /* 优势单项序号生成 */
+        .youshi-xiangmu::before {
+            /* 计数器递增 */
+            counter-increment: ys-count;
+            /* 内容为带零的十进制数 */
+            content: counter(ys-count, decimal-leading-zero);
+            /* 字体超大 8vw */
+            font-size: 8vw;
+            /* 加粗 */
+            font-weight: bold;
+            /* 斜体 */
+            font-style: italic;
+            /* 行高紧凑 */
+            line-height: 0.8;
+            /* 颜色淡主色 */
+            color: rgba(5, 157, 127, 0.2);
+            /* 跨越两行 */
+            grid-row: 1 / span 2;
+        }
+
+        /* 优势单项标题 */
+        .youshi-xiangmu-biaoti {
+            /* 字体大 */
+            font-size: var(--ziti-xl);
+            /* 字重 700 */
+            font-weight: 700;
+            /* 斜体 */
+            font-style: italic;
+            /* 下边距小 */
+            margin: 0 0 var(--jianju-sm) 0;
+            /* 左内边距中等 */
+            padding-left: var(--jianju-md);
+            /* 左边框主色 */
+            border-left: var(--jianju-sm) solid var(--yanse-zhu);
+            /* 行高 1.2 */
+            line-height: 1.2;
+            /* --- 修改点：因全局居中，此处可能需要特殊对齐，暂时跟随父级居中 --- */
+        }
+
+        /* 优势单项内容 */
+        .youshi-xiangmu-neirong {
+            /* 字体正文 */
+            font-size: var(--ziti-xs);
+            /* 行高松散 */
+            line-height: 1.8;
+            /* 颜色次要 */
+            color: var(--yanse-wenzi-ci);
+        }
+
+        /* 优势单项内容段落 */
+        .youshi-xiangmu-neirong span {
+            /* 块级显示 */
+            display: block;
+            /* 下边距极小 */
+            margin-bottom: var(--jianju-xs);
+        }
+
+        /* 优势高亮文本 */
+        .youshi-gaoliang {
+            /* 字体大 */
+            font-size: var(--ziti-lg);
+            /* 背景黄 */
+            background-color: var(--yanse-gaoliang);
+        }
+
+        /* --- 联系板块 (Lianxi) --- */
+        /* 联系区域背景 */
+        .lianxi-fanwei {
+            /* 背景白 */
+            background: #fff;
+        }
+
+        /* 联系卡片 */
+        .lianxi-kapian {
+            /* 半透明白背景 */
+            background-color: rgba(255, 255, 255, 0.95);
+            /* 内边距：上下大，左右中 */
+            padding: var(--jianju-lg) var(--jianju-md);
+            /* 阴影 */
+            box-shadow: 0 var(--jianju-sm) var(--jianju-lg) var(--yinying-shen);
+            /* 边框 */
+            border: 1px solid var(--yanse-biankuang);
+            /* 圆角大 */
+            border-radius: var(--yuanjiao-lg);
+            /* 相对定位 */
+            position: relative;
+        }
+
+        /* 联系标题 */
+        .lianxi-biaoti {
+            /* 斜体 */
+            font-style: italic;
+            /* 下边距小 */
+            margin: 0 0 var(--jianju-sm) 0;
+            /* 文字阴影 */
+            text-shadow: 1px 1px 1px var(--yanse-biankuang);
+            /* 字体大 */
+            font-size: var(--ziti-xl);
+            /* 颜色主色 */
+            color: var(--yanse-zhu);
+        }
+
+        /* 联系英文副标 */
+        .lianxi-yingwen {
+            /* 块级 */
+            display: block;
+            /* 宽度 100% */
+            width: 100%;
+            /* 字体辅助级 */
+            font-size: var(--ziti-xxs);
+            /* 文字白 */
+            color: #fff;
+            /* 背景半透明主色 */
+            background: rgba(5, 157, 127, 0.8);
+            /* 上下内边距极小 */
+            padding: var(--jianju-xs) 0;
+            /* 圆角中 */
+            border-radius: var(--yuanjiao-md);
+            /* 下边距特大 */
+            margin-bottom: var(--jianju-xl);
+        }
+
+        /* 联系品牌区域 */
+        .lianxi-pinpai {
+            /* 背景淡主色 */
+            background: rgba(5, 157, 127, 0.1);
+            /* 圆角大 */
+            border-radius: var(--yuanjiao-lg);
+            /* 内边距中 */
+            padding: var(--jianju-md);
+            /* 上边距特大 */
+            margin-top: var(--jianju-xl);
+            /* Flex 布局 */
+            display: flex;
+            /* 垂直居中 */
+            align-items: center;
+            /* 水平居中 */
+            justify-content: center;
+            /* 间距大 */
+            gap: var(--jianju-lg);
+        }
+
+        /* 联系头像 */
+        .lianxi-touxiang {
+            /* 宽 12vw */
+            width: 12vw;
+            /* 高 12vw */
+            height: 12vw;
+            /* 圆形 */
+            border-radius: var(--yuanjiao-yuan);
+            /* 背景白 */
+            background: #fff;
+            /* 边框白 */
+            border: var(--jianju-xs) solid #fff;
+            /* 细微阴影 */
+            box-shadow: 0 0 0 1px var(--yinying-qian);
+        }
+
+        /* 联系口号 */
+        .lianxi-kouhao {
+            /* 斜体 */
+            font-style: italic;
+            /* 字体大 */
+            font-size: var(--ziti-xl);
+            /* 颜色深主色 */
+            color: var(--yanse-zhu-shen);
+            /* 去除外边距 */
+            margin: 0;
+            /* 行高 1 */
+            line-height: 1;
+        }
+
+        /* 联系按钮组 */
+        .lianxi-anniu-zu {
+            /* Flex 纵向 */
+            display: flex;
+            flex-direction: column;
+            /* 间距 1.5vw */
+            gap: 1.5vw;
+            /* 上边距大 */
+            margin-top: var(--jianju-lg);
+        }
+
+        /* 联系提示信息 */
+        .lianxi-tishi {
+            /* 上边距中 */
+            margin-top: var(--jianju-md);
+            /* 字体最小 */
+            font-size: var(--ziti-min);
+            /* 颜色淡灰 */
+            color: #999;
+        }
+
+        /* --- 留言板 (Liuyan) --- */
+        /* 留言区域容器 */
+        .liuyan-fanwei {
+            /* 左对齐 */
+            text-align: left;
+            /* 最大宽度 90% */
+            max-width: 90%;
+            /* 居中 */
+            margin: 0 auto;
+        }
+
+        /* 留言板标题 */
+        .liuyan-biaoti {
+            /* 字体相对大小 */
+            font-size: 1.67em;
+            /* 字重 700 */
+            font-weight: 700;
+            /* --- 修改点：下边距减少 10% (原 1.5em) --- */
+            margin-bottom: 1.35em;
+            /* 居中 */
+            text-align: center;
+            /* 字间距 */
+            letter-spacing: 0.5em;
+        }
+
+        /* 留言单项 */
+        .liuyan-xiangmu {
+            /* --- 修改点：下边距减少 10% (原 clamp(1em, 3vw, 1.5em)) --- */
+            margin-bottom: clamp(0.9em, 2.7vw, 1.35em);
+            /* 左边框 4px 主色 */
+            border-left: 4px solid var(--yanse-zhu);
+            /* --- 修改点：左内边距减少 10% (原 1.5em) --- */
+            padding-left: 1.35em;
+        }
+
+        /* 留言信息元数据 */
+        .liuyan-xinxi {
+            /* 字体相对小 */
+            font-size: 0.78em;
+            /* 颜色浅灰 */
+            color: var(--yanse-wenzi-qian);
+        }
+
+        /* 留言内容 */
+        .liuyan-neirong {
+            /* 字体相对大小 */
+            font-size: 1em;
+            /* --- 修改点：字体粗细由 bold 改为 normal --- */
+            font-weight: normal;
+            /* 上边距 */
+            margin-top: 0.2em;
+        }
+
+        /* 回复框容器 */
+        .liuyan-huifu-kuang {
+            /* 背景灰白 */
+            background: #fcfcfc;
+            /* --- 修改点：内边距减少 10% (原 0.5em 1em) --- */
+            padding: 0.45em 0.9em;
+            /* 右下圆角 */
+            border-radius: 0 1em 1em 0;
+            /* 左边框 */
+            border-left: 1px solid var(--yanse-biankuang);
+            /* --- 修改点：上边距减少 10% (原 0.2em) --- */
+            margin-top: 0.18em;
+        }
+
+        /* 回复单项 */
+        .liuyan-huifu-xiangmu {
+            /* --- 修改点：下边距减少 10% (原 clamp(0.5em, 2vw, 1em)) --- */
+            margin-bottom: clamp(0.45em, 1.8vw, 0.9em);
+        }
+
+        /* 回复信息元数据 */
+        .liuyan-huifu-xinxi {
+            /* 字体小 */
+            font-size: 0.72em;
+            /* 颜色浅灰 */
+            color: var(--yanse-wenzi-qian);
+            /* 下边距 */
+            margin-bottom: 0.2em;
+        }
+
+        /* 回复内容 */
+        .liuyan-huifu-neirong {
+            /* 字体 0.89em */
+            font-size: 0.89em;
+            /* 颜色深灰 */
+            color: #444;
+            /* 正常粗细 */
+            font-weight: normal;
+            /* 行高 1.6 */
+            line-height: 1.6;
+        }
+
+        /* 回复内容中的 @用户名 */
+        .liuyan-huifu-neirong span {
+            /* 颜色主色 */
+            color: var(--yanse-zhu);
+            /* 字体 0.81em */
+            font-size: 0.81em;
+            /* 右边距 */
+            margin-right: 0.5em;
+            /* 正常粗细 */
+            font-weight: normal;
+            /* 虚线下划线 */
+            border-bottom: 1px dotted #999;
+        }
+
+        /* 楼中楼回复 */
+        .liuyan-louzhonglou {
+            /* --- 修改点：上边距减少 10% (原 0.8em) --- */
+            margin-top: 0.72em;
+            /* --- 修改点：左边距减少 10% (原 1em) --- */
+            margin-left: 0.9em;
+            /* --- 修改点：左内边距减少 10% (原 1em) --- */
+            padding-left: 0.9em;
+            /* 左边框 */
+            border-left: 2px solid #ddd;
+        }
+
+        /* 查看更多留言 */
+        .liuyan-gengduo {
+            /* 居中 */
+            text-align: center;
+            /* 上边距大 */
+            margin-top: var(--jianju-lg);
+        }
+
+        /* 更多留言链接 */
+        .liuyan-gengduo a {
+            /* 行内块 */
+            display: inline-block;
+            /* 内边距：上下小，左右特大 */
+            padding: var(--jianju-sm) var(--jianju-xl);
+            /* 背景主色 */
+            background: var(--yanse-zhu);
+            /* 颜色白 */
+            color: #fff;
+            /* 小圆角 */
+            border-radius: var(--yuanjiao-sm);
+            /* 字体正文 */
+            font-size: var(--ziti-xs);
+            /* 字间距 */
+            letter-spacing: 2px;
+        }
+
+        /* --- 页脚与提示 (Jiaobu/Tishi) --- */
+        /* 页脚区域 */
+        .yejiao-fanwei {
+            /* 字体 80% */
+            font-size: 80%;
+            /* 上内边距特大 */
+            padding-top: var(--jianju-xl);
+            /* 顶边框 */
+            border-top: 1px solid var(--yanse-biankuang);
+        }
+
+        /* 提示框 (Toast) */
+        .tishi-kuang {
+            /* 固定定位 */
+            position: fixed;
+            /* 垂直居中 */
+            top: 50%;
+            /* 水平居中 */
+            left: 50%;
+            /* 偏移修正 */
+            transform: translate(-50%, -50%);
+            /* 半透明黑背景 */
+            background: rgba(0, 0, 0, 0.85);
+            /* 文字白 */
+            color: white;
+            /* 内边距：上下中，左右特大 */
+            padding: var(--jianju-md) var(--jianju-xl);
+            /* 圆角中 */
+            border-radius: var(--yuanjiao-md);
+            /* 字体正文 */
+            font-size: var(--ziti-xs);
+            /* 最高层级 */
+            z-index: 9999;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="toubu-daohang">
+        <nav>
+            <ul id="top">
+                <li><a href="#anli" class="toubu-lianjie">客户案例</a></li>
+                <li><a href="#youshi" class="toubu-lianjie">大嘴的优势</a></li>
+                <li><a href="#lianxi" class="toubu-lianjie">联系大嘴</a></li>
+                <li><a href="#liuyan" class="toubu-lianjie">留言板</a></li>
+                <li><a href="https://docs.qq.com/form/page/DRktiV3lJZk1DclFw" target="_blank" class="toubu-lianjie">申请矫正</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section id="home" class="shouye-fanwei">
+            <div class="shouye-neirong">
+                <div class="shouye-dingbu">
+                    <span>Dazui 1on1</span>
+                    <span><a href="stuttering.html" target="_blank">English</a></span>
+                </div>
+                <h1 class="shouye-biaoti">大嘴一对一 口吃矫正最简单方法</h1>
+                <p class="shouye-kouhao">"爸""哥"等第一个字说不出来 立刻解决，无需等待</p>
+                <p class="shouye-miaoshu">在你想知道如何治疗口吃时，根据不同类型口吃结巴的原因，大嘴提供解决口吃矫正最简单方法。</p>
+                <p class="shouye-miaoshu">如果你有成人口吃或孩子口吃，正在寻找结巴怎么改正，请与大嘴联系。</p>
+                <div class="shouye-caidan">
+                    <a href="#lianxi" class="tongyong-anniu tongyong-anniu-zhu">联系大嘴</a>
+                    <a href="https://docs.qq.com/form/page/DRktiV3lJZk1DclFw" target="_blank" class="tongyong-anniu tongyong-anniu-ci">请先申请</a>
+                </div>
+            </div>
+        </section>
+
+        <section id="anli" class="tongyong-bankuai anli-fanwei">
+            <h2 class="anli-biaoti">大嘴的成功案例</h2>
+            <div class="anli-shichuang">
+                <div class="anli-guidao">
+                    <!-- 案例1 -->
+                    <article class="anli-kapian-wai">
+                        <div class="anli-kapian-nei">
+                            <figure class="anli-touxiang"><img src="files/al01.webp" alt="用户头像" loading="lazy"></figure>
+                            <h4 class="anli-yonghu">欧洲 27岁</h4>
+                            <p class="anli-shijian">口吃持续时间21年</p>
+                            <blockquote class="anli-neirong">是中国留学生帮助我付款,大嘴是一支知识渊博、经验丰富的队伍。对他们的实力我没有任何怀疑。我们合作得很愉快。</blockquote>
+                        </div>
+                    </article>
+                    <!-- 案例2 -->
+                    <article class="anli-kapian-wai">
+                        <div class="anli-kapian-nei">
+                            <figure class="anli-touxiang"><img src="files/al02.webp" alt="用户头像" loading="lazy"></figure>
+                            <h4 class="anli-yonghu">亚洲 5岁</h4>
+                            <p class="anli-shijian">口吃持续时间2年</p>
+                            <blockquote class="anli-neirong">学生家长介绍的大嘴一对一口吃矫正疗法,他们是口吃治疗行业的顶尖专家，我信赖他们。作为父母，对矫正的结果我很满意。</blockquote>
+                        </div>
+                    </article>
+                    <!-- 案例3 -->
+                    <article class="anli-kapian-wai">
+                        <div class="anli-kapian-nei">
+                            <figure class="anli-touxiang"><img src="files/al03.webp" alt="用户头像" loading="lazy"></figure>
+                            <h4 class="anli-yonghu">亚洲 22岁</h4>
+                            <p class="anli-shijian">口吃持续时间17年</p>
+                            <blockquote class="anli-neirong">辅导员介绍的大嘴口吃矫正,他们是值得信赖、极具竞争力的领域专家。我一直钦佩他们的专注和付出。</blockquote>
+                        </div>
+                    </article>
+                    <!-- 案例4 -->
+                    <article class="anli-kapian-wai">
+                        <div class="anli-kapian-nei">
+                            <figure class="anli-touxiang"><img src="files/al04.webp" alt="用户头像" loading="lazy"></figure>
+                            <h4 class="anli-yonghu">澳洲 25岁</h4>
+                            <p class="anli-shijian">口吃持续时间19年</p>
+                            <blockquote class="anli-neirong">是大嘴一对一最终治疗好我的口吃,之前在我们国家,我有两次失败的矫正经历.我毫不怀疑大嘴的教练们在口吃领域的专业知识。</blockquote>
+                        </div>
+                    </article>
+                    <!-- 案例5 -->
+                    <article class="anli-kapian-wai">
+                        <div class="anli-kapian-nei">
+                            <figure class="anli-touxiang"><img src="files/al05.webp" alt="用户头像" loading="lazy"></figure>
+                            <h4 class="anli-yonghu">美洲 23岁</h4>
+                            <p class="anli-shijian">口吃持续时间20年</p>
+                            <blockquote class="anli-neirong">我的性格比较内向，但是在孔子学院和大嘴共同的帮助下，对于说话,我没有之前那么大的恐惧。这是学习中文带给我的意外收获。</blockquote>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section id="youshi" class="tongyong-bankuai youshi-fanwei">
+            <div class="youshi-toubu">
+                <div class="youshi-qipao">
+                    <p class="youshi-qipao-p">为什么这么多人信任大嘴矫正口吃</p>
+                    <h2 class="youshi-qipao-h2">选择大嘴1对1原因</h2>
+                </div>
+                <img src="files/touxiang.webp" class="youshi-touxiang" alt="大嘴形象照">
+            </div>
+
+            <ol class="youshi-liebiao">
+                <li class="youshi-xiangmu">
+                    <h3 class="youshi-xiangmu-biaoti">世界领先,实力广受认可</h3>
+                    <div class="youshi-xiangmu-neirong">
+                        <span>常有海外矫正未果的华人华侨寻求帮助，口吃矫正水平处国际顶尖水准。</span>
+                        <span>专注儿童和30岁以下成年人口吃群体矫正，收获用户广泛信任。</span>
+                        <span>申请口吃矫正群体主要包含海内外同胞、能进行基本汉语交流的外籍人士。</span>
+                    </div>
+                </li>
+                <li class="youshi-xiangmu">
+                    <h3 class="youshi-xiangmu-biaoti">正确选择比努力更重要</h3>
+                    <div class="youshi-xiangmu-neirong">
+                        <span>大嘴<mark class="youshi-gaoliang">不采用无效或复发率高的方法</mark>，例如森田疗法、呼吸法、突破法、心理疗法、匀速拖音法、口吃矫正器节拍器、发音发声法、扳指法等低效方法。</span>
+                        <span>这些矫正口吃方式时常更换名称出现，在过去数十年被证实效果不理想。</span>
+                        <span>在我们的学员中，不少参加过失望的口吃矫正，最终在大嘴一对一实现矫正成功。</span>
+                    </div>
+                </li>
+                <li class="youshi-xiangmu">
+                    <h3 class="youshi-xiangmu-biaoti">众多客户成功不复发</h3>
+                    <div class="youshi-xiangmu-neirong">
+                        <span>不复发才是最终的成功。只有参加过其它口吃矫正失败的的朋友才理解。</span>
+                        <span>复发花每一分钱、每一分钟都是浪费；你需要的是稳定不复发的结果。</span>
+                        <span>大嘴一对一重长期稳效，不做短期低价速成。</span>
+                    </div>
+                </li>
+                <li class="youshi-xiangmu">
+                    <h3 class="youshi-xiangmu-biaoti">随时随地,不影响工作学习</h3>
+                    <div class="youshi-xiangmu-neirong">
+                        <span>不必离家、不必请假，省去外出的花费和时间，却能享受最难得的一对一矫正机会。</span>
+                        <span>无须每天矫正，不影响学习或工作。海外时差问题也不再担忧。</span>
+                        <span>每个人口吃类型、时长、适应能力各异，大嘴1对1是最好的矫正方式，避免口吃朋友相互影响。</span>
+                    </div>
+                </li>
+                <li class="youshi-xiangmu">
+                    <h3 class="youshi-xiangmu-biaoti">科研型团队,申请矫正,不设销售</h3>
+                    <div class="youshi-xiangmu-neirong">
+                        <span>教练都具有自身矫正成功经历和至少5年线上矫正经验。</span>
+                        <span>相对于以销售为主的机构，大嘴一对一实行无销售的申请制矫正，确保学员质量满足最低标准。</span>
+                        <span>团队已总结11种针对不同口吃结巴类型的方法，真实一对一制定方案。</span>
+                    </div>
+                </li>
+                <li class="youshi-xiangmu">
+                    <h3 class="youshi-xiangmu-biaoti">保护隐私,你我都要做好</h3>
+                    <div class="youshi-xiangmu-neirong">
+                        <span>未经授权，你的视频或图片不会被保存或展示。多年来无一例泄密。</span>
+                        <span>个人信息与矫正内容互相绑定，确保收费内容不被海内外学员泄露。</span>
+                        <span>对你的口吃结巴矫正是量身定做的，你的隐私和大嘴的知识产权受到严密保护。</span>
+                    </div>
+                </li>
+            </ol>
+        </section>
+
+        <section id="lianxi" class="tongyong-bankuai lianxi-fanwei">
+            <div class="lianxi-kapian">
+                <header>
+                    <h2 class="lianxi-biaoti">大嘴1对1 口吃结巴矫正最简单方法</h2>
+                    <span class="lianxi-yingwen">Dazui One-on-One Speech Therapy For Stuttering</span>
+                </header>
+
+                <div class="lianxi-pinpai">
+                    <img class="lianxi-touxiang" src="files/touxiang.webp" alt="大嘴Logo">
+                    <p class="lianxi-kouhao">一对一网课 随时随地 矫正成功</p>
+                </div>
+
+                <address>
+                    <div class="lianxi-anniu-zu">
+                        <button class="fuzhi-anniu" data-action="copy" data-value="StutterGone3">
+                            StutterGone3 点击复制微信
+                        </button>
+                        <button class="fuzhi-anniu" data-action="copy" data-value="Dazui@1024.org">
+                            Dazui@1024.org 点击复制邮箱地址
+                        </button>
+                    </div>
+                    <p class="lianxi-tishi">联系我们前请认同：口吃不是病，不涉及任何医疗或学科类培训等需要审批许可的项目</p>
+                </address>
+            </div>
+        </section>
+
+        <section id="liuyan" class="tongyong-bankuai liuyan-fanwei">
+            <h2 class="liuyan-biaoti">留言板</h2>
+
+            <!-- 留言 1 -->
+            <article class="liuyan-xiangmu">
+                <div class="liuyan-xinxi">11年04月陈07 / 2011-04-16</div>
+                <div class="liuyan-neirong">有微信吗？类似米聊那种，腾讯出的</div>
+                <div class="liuyan-huifu-kuang">
+                    <div class="liuyan-huifu-xiangmu">
+                        <div class="liuyan-huifu-xinxi">口吃克星大嘴一对一矫正 / 2011-10-26</div>
+                        <div class="liuyan-huifu-neirong"><span>@11年04月陈07</span> 现在有了,看帖子。</div>
+                    </div>
+                    <div class="liuyan-huifu-xiangmu">
+                        <div class="liuyan-huifu-xinxi">大嘴国际口吃结巴一对一矫正 / 2013-07-21</div>
+                        <div class="liuyan-huifu-neirong"><span>@11年04月陈07</span> StutterGone3</div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 留言 2 -->
+            <article class="liuyan-xiangmu">
+                <div class="liuyan-xinxi">11年12月CAN-Liam / 2011-12-03</div>
+                <div class="liuyan-neirong">付款方式没找到PayPal，没有中国银行卡怎么付款</div>
+                <div class="liuyan-huifu-kuang">
+                    <div class="liuyan-huifu-xiangmu">
+                        <div class="liuyan-huifu-xinxi">大嘴国际口吃矫正一对一 / 2012-01-02</div>
+                        <div class="liuyan-huifu-neirong"><span>@11年12月CAN-Liam</span> TT或西联可以，PayPal在大陆名声不好。</div>
+                    </div>
+                    <div class="liuyan-huifu-xiangmu">
+                        <div class="liuyan-huifu-xinxi">15年01月US-Ethan / 2015-02-13</div>
+                        <div class="liuyan-huifu-neirong"><span>@11年12月CAN-Liam</span> PP可以直接T/T啊，或西联充值支付宝</div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 留言 3 -->
+            <article class="liuyan-xiangmu">
+                <div class="liuyan-xinxi">未认证昵称 / 2012-12-26</div>
+                <div class="liuyan-neirong">大嘴口吃矫正怎么样？靠谱吗？治疗效果怎么样？</div>
+                <div class="liuyan-huifu-kuang">
+                    <div class="liuyan-huifu-xiangmu">
+                        <div class="liuyan-huifu-xinxi">12年07月许07 / 2013-01-14</div>
+                        <div class="liuyan-huifu-neirong"><span>@未认证昵称</span> 教练很好，助理客服态度屎一样。</div>
+                        
+                        <div class="liuyan-louzhonglou">
+                            <div class="liuyan-huifu-xinxi">12年10月AU-Olivia / 2013-05-29</div>
+                            <div class="liuyan-huifu-neirong"><span>@12年07月许07</span> 亲，正能量！</div>
+                        </div>
+                        <div class="liuyan-louzhonglou">
+                            <div class="liuyan-huifu-xinxi">13年09月苏11 / 2013-10-02</div>
+                            <div class="liuyan-huifu-neirong"><span>@12年07月许07</span> 我和我的小伙伴们都惊呆了</div>
+                        </div>
+                        <div class="liuyan-louzhonglou">
+                            <div class="liuyan-huifu-xinxi">14年06月方17 / 2014-11-23</div>
+                            <div class="liuyan-huifu-neirong"><span>@12年07月许07</span> 你结课了吧？ NO ZUO，NO DIE。</div>
+                        </div>
+                        <div class="liuyan-louzhonglou">
+                            <div class="liuyan-huifu-xinxi">15年03月吕05 / 2015-08-01</div>
+                            <div class="liuyan-huifu-neirong"><span>@12年07月许07</span> 重要事情说三遍！教练很好，助理客服态度屎一样。教练很好，助理客服态度屎一样。教练很好，助理客服态度屎一样。</div>
+                            
+                            <div class="liuyan-louzhonglou">
+                                <div class="liuyan-huifu-xinxi">16年11月GB-Aaron / 2016-12-02</div>
+                                <div class="liuyan-huifu-neirong"><span>@15年03月吕05</span> 厉害了我的哥！</div>
+                            </div>
+                        </div>
+                        <div class="liuyan-louzhonglou">
+                            <div class="liuyan-huifu-xinxi">18年04月严17 / 2018-10-30</div>
+                            <div class="liuyan-huifu-neirong"><span>@12年07月许07</span> 你号没了</div>
+                        </div>
+                    </div>
+                    <div class="liuyan-huifu-xiangmu">
+                        <div class="liuyan-huifu-xinxi">14年02月任29 / 2014-07-10</div>
+                        <div class="liuyan-huifu-neirong"><span>@未认证昵称</span> 非常专业，比几年前参加过的好太多了</div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 留言 4 -->
+            <article class="liuyan-xiangmu">
+                <div class="liuyan-xinxi">13年06月刘11 / 2013-07-13</div>
+                <div class="liuyan-neirong">你们都报的什么班啊，为什么昵称看不出来啊</div>
+                <div class="liuyan-huifu-kuang">
+                    <div class="liuyan-huifu-xiangmu">
+                        <div class="liuyan-huifu-xinxi">13年02月任07 / 2013-09-10</div>
+                        <div class="liuyan-huifu-neirong"><span>@13年06月刘11</span> 让你报什么班就报什么班呗，反正你说了也不算</div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 留言 5 -->
+            <article class="liuyan-xiangmu">
+                <div class="liuyan-xinxi">14年09月杨25 / 2014-11-30</div>
+                <div class="liuyan-neirong">这大嘴家的助理没人管吗，排个课1天不回复！</div>
+                <div class="liuyan-huifu-kuang">
+                    <div class="liuyan-huifu-xiangmu">
+                        <div class="liuyan-huifu-xinxi">14年08月黄11 / 2014-12-12</div>
+                        <div class="liuyan-huifu-neirong"><span>@14年09月杨25</span> 能报上名就是好的,排下个月的课无所谓快点慢点</div>
+                    </div>
+                    <div class="liuyan-huifu-xiangmu">
+                        <div class="liuyan-huifu-xinxi">15年01月吴18 / 2015-04-02</div>
+                        <div class="liuyan-huifu-neirong"><span>@14年09月杨25</span> 呵呵，正常，每次都是一两天才回复我</div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 留言 6 -->
+            <article class="liuyan-xiangmu">
+                <div class="liuyan-xinxi">15年01月赵03 / 2015-01-11</div>
+                <div class="liuyan-neirong">有昵称的都是报上名的吧，请问各位前辈口吃矫正最简单方法是什么呢？</div>
+                <div class="liuyan-huifu-kuang">
+                    <div class="liuyan-huifu-xiangmu">
+                        <div class="liuyan-huifu-xinxi">15年02月郭18 / 2015-05-27</div>
+                        <div class="liuyan-huifu-neirong"><span>@15年01月赵03</span> 没有口吃矫正最简单的方法，只有口吃矫正更简单的方法</div>
+                    </div>
+                    <div class="liuyan-huifu-xiangmu">
+                        <div class="liuyan-huifu-xinxi">15年11月朱25 / 2015-12-09</div>
+                        <div class="liuyan-huifu-neirong"><span>@15年01月赵03</span> 你要这样问教练可要批评你了哈哈</div>
+                    </div>
+                    <div class="liuyan-huifu-xiangmu">
+                        <div class="liuyan-huifu-xinxi">16年04月胡19 / 2016-10-17</div>
+                        <div class="liuyan-huifu-neirong"><span>@15年01月赵03</span> 不老想着走捷径，一步一步来就是口吃矫正最简单的方法</div>
+                    </div>
+                    <div class="liuyan-huifu-xiangmu">
+                        <div class="liuyan-huifu-xinxi">17年08月吕30 / 2017-10-02</div>
+                        <div class="liuyan-huifu-neirong"><span>@15年01月赵03</span> 成人和儿童口吃结巴矫正最简单方法是不一样的</div>
+                    </div>
+                    <div class="liuyan-huifu-xiangmu">
+                        <div class="liuyan-huifu-xinxi">18年03月高15 / 2018-04-23</div>
+                        <div class="liuyan-huifu-neirong"><span>@15年01月赵03</span> 多说话多按教练要求的做吧</div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 留言 7 -->
+            <article class="liuyan-xiangmu">
+                <div class="liuyan-xinxi">15年10月宋17 / 2015-11-06</div>
+                <div class="liuyan-neirong">你们去过医院吗，口吃结巴挂什么科室啊</div>
+                <div class="liuyan-huifu-kuang">
+                    <div class="liuyan-huifu-xiangmu">
+                        <div class="liuyan-huifu-xinxi">15年12月USA-Johnson / 2016-01-13</div>
+                        <div class="liuyan-huifu-neirong"><span>@15年10月宋17</span> 我在美国去过专业言语障碍诊所，也是一对一，很贵的，效果一般般，不过时间更自由些</div>
+                    </div>
+                    <div class="liuyan-huifu-xiangmu">
+                        <div class="liuyan-huifu-xinxi">16年03月郑09 / 2016-05-01</div>
+                        <div class="liuyan-huifu-neirong"><span>@15年10月宋17</span> 医院更没有保障，反正他们说了算</div>
+                    </div>
+                    <div class="liuyan-huifu-xiangmu">
+                        <div class="liuyan-huifu-xinxi">16年10月范02 / 2016-10-28</div>
+                        <div class="liuyan-huifu-neirong"><span>@15年10月宋17</span> 我能说我父亲就是市中心医院的医生吗，我是被推荐来的</div>
+                    </div>
+                    <div class="liuyan-huifu-xiangmu">
+                        <div class="liuyan-huifu-xinxi">17年07月何32 / 2017-08-27</div>
+                        <div class="liuyan-huifu-neirong"><span>@15年10月宋17</span> 打个电话问问不就知道了</div>
+                    </div>
+                    <div class="liuyan-huifu-xiangmu">
+                        <div class="liuyan-huifu-xinxi">18年10月韩04 / 2018-11-10</div>
+                        <div class="liuyan-huifu-neirong"><span>@15年10月宋17</span> 上海的去过耳鼻喉科，没啥鸟用</div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 留言 8 -->
+            <article class="liuyan-xiangmu">
+                <div class="liuyan-xinxi">16年02月周27 / 2016-02-25</div>
+                <div class="liuyan-neirong">上完课的说一下，你们的口吃结巴怎么矫正成功的</div>
+                <div class="liuyan-huifu-kuang">
+                    <div class="liuyan-huifu-xiangmu">
+                        <div class="liuyan-huifu-xinxi">15年12月苏19 / 2016-03-16</div>
+                        <div class="liuyan-huifu-neirong"><span>@16年02月周27</span> 上完课的谁还来看排课信息啊</div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 留言 9 -->
+            <article class="liuyan-xiangmu">
+                <div class="liuyan-xinxi">16年04月石11 / 2016-05-03</div>
+                <div class="liuyan-neirong">大家的口吃都是什么原因引起的啊</div>
+                <div class="liuyan-huifu-kuang">
+                    <div class="liuyan-huifu-xiangmu">
+                        <div class="liuyan-huifu-xinxi">16年04月石11 / 2016-05-21</div>
+                        <div class="liuyan-huifu-neirong">回复一下可以吗，大家聊聊</div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 留言 10 -->
+            <article class="liuyan-xiangmu">
+                <div class="liuyan-xinxi">17年01月邓19 / 2017-02-27</div>
+                <div class="liuyan-neirong">排课表呢？这都月底了</div>
+                <div class="liuyan-huifu-kuang">
+                    <div class="liuyan-huifu-xiangmu">
+                        <div class="liuyan-huifu-xinxi">17年02月候21 / 2017-03-01</div>
+                        <div class="liuyan-huifu-neirong"><span>@17年01月邓19</span> 微信</div>
+                    </div>
+                    <div class="liuyan-huifu-xiangmu">
+                        <div class="liuyan-huifu-xinxi">17年04月罗29 / 2017-05-08</div>
+                        <div class="liuyan-huifu-neirong"><span>@17年01月邓19</span> 转微信了，这网站以前这么多好帖子都没有了</div>
+                    </div>
+                    <div class="liuyan-huifu-xiangmu">
+                        <div class="liuyan-huifu-xinxi">16年12月沈03 / 2017-05-20</div>
+                        <div class="liuyan-huifu-neirong"><span>@17年01月邓19</span> 向你的助理要，我都没关注，每次月底就向助理要</div>
+                    </div>
+                    <div class="liuyan-huifu-xiangmu">
+                        <div class="liuyan-huifu-xinxi">18年01月孟10 / 2018-01-29</div>
+                        <div class="liuyan-huifu-neirong"><span>@17年01月邓19</span> 现在用微信的越来越多了，这网站没落了</div>
+                    </div>
+                </div>
+            </article>
+
+            <div class="liuyan-gengduo">
+                <a href="404.html" target="_blank">点击查看更多留言</a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="yejiao-fanwei">
+        <p>
+            <a href="#top">返回顶部</a> | 
+            本站已安全运行: 
+            <time data-behavior="timer" data-start="2010-07-30T23:49:00+08:00"></time>
+        </p>
+    </footer>
+
+    <script>
+        (function() {
+            /* 1. 计时器逻辑 (Timer) */
+            function initTimer() {
+                /* 查找所有绑定了 timer 行为的元素 */
+                var els = document.querySelectorAll('[data-behavior="timer"]');
+                /* 遍历每个元素 */
+                els.forEach(function(el) {
+                    /* 获取起始时间 */
+                    var start = new Date(el.dataset.start);
+                    /* 定义更新函数 */
+                    function update() {
+                        /* 获取当前时间 */
+                        var now = new Date();
+                        /* 计算时间差(秒) */
+                        var diff = Math.floor((now - start) / 1000);
+                        /* 计算年 */
+                        var y = Math.floor(diff / (365 * 24 * 3600)); diff %= 365 * 24 * 3600;
+                        /* 计算天 */
+                        var d = Math.floor(diff / (24 * 3600)); diff %= 24 * 3600;
+                        /* 计算小时 */
+                        var h = Math.floor(diff / 3600); diff %= 3600;
+                        /* 计算分钟 */
+                        var m = Math.floor(diff / 60);
+                        /* 计算秒 */
+                        var s = diff % 60;
+                        /* 更新元素文本内容 */
+                        el.textContent = y + '年' + d + '天' + h + '小时' + m + '分' + s + '秒';
+                    }
+                    /* 立即执行一次 */
+                    update();
+                    /* 每秒更新一次 */
+                    setInterval(update, 1000);
+                });
+            }
+
+            /* 2. 复制功能逻辑 (Copy) */
+            function initCopy() {
+                /* 定义提示框显示函数 */
+                function toast(msg) {
+                    /* 创建 div 元素 */
+                    var t = document.createElement('div');
+                    /* 添加类名 */
+                    t.className = 'tishi-kuang';
+                    /* 设置文本 */
+                    t.textContent = msg;
+                    /* 添加到 body */
+                    document.body.appendChild(t);
+                    /* --- 修改点：显示时间从 1000ms 改为 500ms --- */
+                    setTimeout(function() { t.remove(); }, 500);
+                }
+                
+                /* 查找所有绑定了 copy 行为的元素 */
+                var els = document.querySelectorAll('[data-action="copy"]');
+                /* 遍历每个元素 */
+                els.forEach(function(el) {
+                    /* 添加点击事件监听 */
+                    el.addEventListener('click', function() {
+                        /* 获取要复制的值 */
+                        var val = el.dataset.value;
+                        /* 如果值不存在，提示错误 */
+                        if (!val) { toast('复制目标不存在!'); return; }
+                        /* 调用剪贴板 API */
+                        navigator.clipboard.writeText(val)
+                            /* 成功回调 */
+                            .then(function() { toast('复制成功!'); })
+                            /* 失败回调 */
+                            .catch(function () { toast('复制失败,请手动复制文本~'); });
+                    });
+                });
+            }
+
+            /* 3. 初始化 */
+            document.addEventListener('DOMContentLoaded', function() {
+                /* 初始化计时器 */
+                initTimer();
+                /* 初始化复制功能 */
+                initCopy();
+            });
+        })();
+    </script>
+</body>
+</html>
